@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from frappe.email.doctype.notification.notification import Notification, get_context, json
 from twilio_integration.twilio_integration.doctype.whatsapp_message.whatsapp_message import WhatsAppMessage
+import urllib.parse
 
 class SendNotification(Notification):
 	def validate(self):
@@ -30,9 +31,42 @@ class SendNotification(Notification):
 		super(SendNotification, self).send(doc)
 
 	def send_whatsapp_msg(self, doc, context):
+
+		# Optional: fetch media from attachments if you want to support it
+		media_link = None
+		if self.attach_print:
+			# Example: generate PDF link
+
+			default_format = None
+			if self.print_format:
+				default_format = self.print_format
+			else:
+				default_format = self.get_default_print_format(doctype = doc.doctype)
+
+			media_link = (
+				frappe.utils.get_url() +
+				"/api/method/frappe.utils.print_format.download_pdf"
+				f"?doctype={urllib.parse.quote(doc.doctype)}"
+				f"&name={urllib.parse.quote(doc.name)}"
+				f"&format={urllib.parse.quote(default_format)}"
+				f"&no_letterhead=0"
+				f"&letterhead={urllib.parse.quote('No Letterhead')}"
+				f"&settings={urllib.parse.quote('{}')}"
+				f"&_lang=en"
+			)
+
 		WhatsAppMessage.send_whatsapp_message(
 			receiver_list=self.get_receiver_list(doc, context),
-			message=frappe.render_template(self.message, context),
+			message=frappe.render_template(self.message + ", Link :" + media_link, context),
 			doctype = self.doctype,
-			docname = self.name
+			docname = self.name,
+			media=media_link
 		)
+
+	def get_default_print_format(self, doctype):
+		default_format = frappe.db.get_value("Property Setter", {
+			"doc_type": doctype,
+			"property": "default_print_format"
+		}, "value")
+
+		return default_format or "Default"

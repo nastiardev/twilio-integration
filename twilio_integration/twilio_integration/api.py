@@ -6,6 +6,7 @@ from frappe.contacts.doctype.contact.contact import get_contact_with_phone_numbe
 from .twilio_handler import Twilio, IncomingCall, TwilioCallDetails
 from twilio_integration.twilio_integration.doctype.whatsapp_message.whatsapp_message import incoming_message_callback
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio_integration.twilio_integration.doctype.whatsapp_message.whatsapp_message import WhatsAppMessage
 
 @frappe.whitelist()
 def get_twilio_phone_numbers():
@@ -137,3 +138,31 @@ def whatsapp_message_status_callback(**kwargs):
 	if frappe.db.exists({'doctype': 'WhatsApp Message', 'id': args.MessageSid, 'from_': args.From, 'to': args.To}):
 		message = frappe.get_doc('WhatsApp Message', {'id': args.MessageSid, 'from_': args.From, 'to': args.To})
 		message.db_set('status', args.MessageStatus.title())
+
+@frappe.whitelist()
+def send_whatsapp_notification(receiver_list, message, doctype, docname):
+	"""
+	A whitelisted API function to send a WhatsApp notification.
+
+	This function is designed to be called from a client script. It takes the
+	necessary parameters and passes them to the core send_whatsapp_message method.
+	"""
+	try:
+		# This is the core action, directly calling the class method 
+		# from the WhatsAppMessage DocType, just like in your notification.py
+		WhatsAppMessage.send_whatsapp_message(
+			receiver_list=receiver_list,
+			message=message,
+			doctype=doctype,
+			docname=docname
+		)
+		return "WhatsApp notification has been queued for sending."
+
+	except Exception as e:
+		# Log the full error for the system administrator to see
+		frappe.log_error(
+			title='Failed to send WhatsApp via API',
+			message=frappe.get_traceback()
+		)
+		# Send a user-friendly error message back to the client
+		frappe.throw(f"Could not send WhatsApp Notification: {e}")

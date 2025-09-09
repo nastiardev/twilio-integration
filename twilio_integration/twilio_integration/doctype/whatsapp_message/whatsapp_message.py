@@ -8,6 +8,7 @@ from frappe.utils.password import get_decrypted_password
 from frappe.utils import get_site_url
 from frappe import _
 from ...twilio_handler import Twilio
+from json import loads
 
 class WhatsAppMessage(Document):
 	def send(self):
@@ -47,7 +48,7 @@ class WhatsAppMessage(Document):
 				receiver_list = [receiver_list]
 
 		for rec in receiver_list:
-			message = self.store_whatsapp_message(rec, message, doctype, docname)
+			message = self.store_whatsapp_message(rec, message, doctype, docname, media)
 			message.send()
 
 	def store_whatsapp_message(to, message, doctype=None, docname=None, media=None):
