@@ -57,7 +57,7 @@ class SendNotification(Notification):
 
 		WhatsAppMessage.send_whatsapp_message(
 			receiver_list=self.get_receiver_list(doc, context),
-			message=frappe.render_template(self.message + ", Link :" + media_link, context),
+			message=frappe.render_template(self.message, context),
 			doctype = self.doctype,
 			docname = self.name,
 			media=media_link
