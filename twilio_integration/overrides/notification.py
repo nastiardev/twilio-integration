@@ -48,11 +48,11 @@ class SendNotification(Notification):
 				"/api/method/frappe.utils.print_format.download_pdf"
 				f"?doctype={urllib.parse.quote(doc.doctype)}"
 				f"&name={urllib.parse.quote(doc.name)}"
-				f"&format={urllib.parse.quote(default_format)}"
-				f"&no_letterhead=0"
-				f"&letterhead={urllib.parse.quote('No Letterhead')}"
-				f"&settings={urllib.parse.quote('{}')}"
-				f"&_lang=en"
+				# f"&format={urllib.parse.quote(default_format)}"
+				# f"&no_letterhead=0"
+				# f"&letterhead={urllib.parse.quote('No Letterhead')}"
+				# f"&settings={urllib.parse.quote('{}')}"
+				# f"&_lang=en"
 			)
 
 		WhatsAppMessage.send_whatsapp_message(
