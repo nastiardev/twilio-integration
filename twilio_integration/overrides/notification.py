@@ -35,38 +35,20 @@ class SendNotification(Notification):
 		# Optional: fetch media from attachments if you want to support it
 		media_link = None
 		if self.attach_print:
-			# Example: generate PDF link
-
-			default_format = None
-			if self.print_format:
-				default_format = self.print_format
-			else:
-				default_format = self.get_default_print_format(doctype = doc.doctype)
-
-			media_link = (
-				frappe.utils.get_url() +
-				"/api/method/frappe.utils.print_format.download_pdf"
-				f"?doctype={urllib.parse.quote(doc.doctype)}"
-				f"&name={urllib.parse.quote(doc.name)}"
-				f"&format={urllib.parse.quote(default_format)}"
-				f"&no_letterhead=0"
-				f"&letterhead={urllib.parse.quote('No Letterhead')}"
-				f"&settings={urllib.parse.quote('{}')}"
-				f"&_lang=en"
+			file_url = frappe.db.get_value(
+				"File",
+				{"file_name": doc.name + ".pdf"},
+				"file_url"
 			)
+			media_link = frappe.utils.get_url() + file_url
 
+		link_text = ""
+		if media_link:
+			link_text = ", Link : " + media_link
 		WhatsAppMessage.send_whatsapp_message(
 			receiver_list=self.get_receiver_list(doc, context),
-			message=frappe.render_template(self.message + ", Link :" + media_link, context),
+			message=frappe.render_template(self.message + link_text, context),
 			doctype = self.doctype,
 			docname = self.name,
 			media=media_link
 		)
-
-	def get_default_print_format(self, doctype):
-		default_format = frappe.db.get_value("Property Setter", {
-			"doc_type": doctype,
-			"property": "default_print_format"
-		}, "value")
-
-		return default_format or "Default"
